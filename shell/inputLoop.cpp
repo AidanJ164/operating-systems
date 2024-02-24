@@ -14,15 +14,8 @@ void inputLoop () {
     vector<Command> parsed = {};
     while (line = readline("mish> "), "exit") {
         parsed = parseString(line);
+
         // If there are commands, run them.
-
-        for (int i = 0; i < (int)parsed.size(); i++) {
-            for (int j = 0; j < (int)parsed[i].args.size(); j++) {
-                cout << parsed[i].args[j] << ",";
-            }
-            cout << endl;
-        }
-
         if (parsed.size() >= 1) {
             runCommands(parsed);
         }

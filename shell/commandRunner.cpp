@@ -40,7 +40,7 @@ void mishCommands(Command command) {
 
     // Set path
     if (command.setPath) {
-        int ret = setenv(command.args[0].c_str(), command.args[2].c_str(), 1);
+        int ret = setenv(command.args[0].c_str(), command.args[1].c_str(), 1);
         if (ret != 0) {
             cerr << "Could not set environment variable: " << command.args[0] << "=" << command.args[2];
         }

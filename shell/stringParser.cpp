@@ -79,6 +79,13 @@ void parseOutput(Command &command, vector<string> &words) {
     }
 }
 
+void stripWhitespace(string &line) {
+    size_t leading = line.find_first_not_of(" \t");
+    if (leading != 0) {
+        line = line.substr(leading);
+    }
+}
+
 /*
 Description: Parse the given command line. It searches first for & for parallel commands.
 Then it looks for | for commands that should be piped to the next command. Finally, it
@@ -97,9 +104,10 @@ vector<Command> parseString(char* input) {
         parallelLines.push_back(parallelTok);
         parallelTok = strtok(NULL, "&");
     }
-
+  
     for (int j = 0; j < (int)parallelLines.size(); j++) {
         vector<string> commandLines = {};
+        stripWhitespace(parallelLines[j]);
 
         // Find redundant & and signal that last command should pipe into next
         size_t pipe = parallelLines[j].find_first_not_of(" \t");
@@ -122,53 +130,76 @@ vector<Command> parseString(char* input) {
             return {};
         }
         commandLines.push_back(parallelLines[j]);
-        
 
         // Run through each command
         for (int k = 0; k < (int)commandLines.size(); k++) {
             Command command;
             vector<string> words = {};
+            string commandLine = commandLines[k];
 
             // If there are multiple commands in here, output of i - 1 should be input to i
             if (k < (int)commandLines.size() - 1) {
                 command.pipe = true;
             }
 
-            // Parse string by spaces or tabs
-            char* token = strtok((char*)commandLines[k].c_str(), " \t");
-            while (token != NULL) {
-                words.push_back(token);
-                token = strtok(NULL, " ");
-            }
+            // Strip leading white space
+            stripWhitespace(commandLine);
 
-            // Find > for output redirection
-            parseOutput(command, words);
-
-            // Find < for input redirection
-            parseInput(command, words);
-
-            // Find equals for setting PATH
-            int i = 0;
-            size_t found;
-            while(i < (int)words.size() && (found = words[i].find('=')) == string::npos) {
-                i++;
-            }
-            if (i < (int)words.size() && words[i] != "=") {
-                // Split string 
-                // if found < word.size, = somewhere in the command
-                command.setPath = true;
-                if (found < words[i].size() - 1) {
-                    words.insert(words.begin() + i + 1, words[i].substr(found + 1));
-                    words[i] = words[i].substr(0, found + 1);
+            // Parse string by spaces and tabs and separate input, output, and path tokens
+            size_t token = commandLine.find_first_of(" \t<>=");
+            while (token != string::npos) {
+                if (commandLine.substr(0, token) != "") {
+                    words.push_back(commandLine.substr(0, token));
                 }
-                // if found == words.size() - 1, = at end
-                if (found == words[i].size() - 1) {
-                    string sub = words[i].substr(0, found);
-                    words[i] = "=";
-                    words.insert(words.begin() + i, sub);
+                switch (commandLine[token]) {
+                    case '>':
+                        words.push_back(">");
+                        break;
+                    case '<':
+                        words.push_back("<");
+                        break;
+                    case '=':
+                        words.push_back("=");
+                        break;
+                    default:
+                        break;
                 }
+                commandLine = commandLine.substr(token + 1);
+                token = commandLine.find_first_of(" \t<>=");
+            }
+            if (commandLine.find_first_not_of(" \t") != string::npos) {
+                words.push_back(commandLine);
             }
             
+            vector<string>::iterator itr = words.begin();
+            while(itr != words.end()) {
+                string curValue = *itr;
+                if (((curValue == "<") | (curValue == ">") | (curValue == "=")) && (itr + 1 != words.end())) {
+                    string nextValue = *(itr + 1);
+                    if (nextValue.find_first_of("<>=") != string::npos) {
+                        cerr << "Must have an appropriate value after >, <, or =" << endl;
+                        return {};
+                    }
+                    itr = words.erase(itr);
+                    switch (curValue[0]) {
+                        case '<':
+                            command.input = nextValue;
+                            itr = words.erase(itr);
+                            break;
+                        case '>':
+                            command.output = nextValue;
+                            itr = words.erase(itr);
+                            break;
+                        case '=':
+                            command.setPath = true;
+                            break;
+                    }
+                }
+                else {
+                    itr++;
+                }
+            }
+
             command.args = words;
             commands.push_back(command);
         }
