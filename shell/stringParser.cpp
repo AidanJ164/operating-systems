@@ -99,17 +99,30 @@ vector<Command> parseString(char* input) {
     }
 
     for (int j = 0; j < (int)parallelLines.size(); j++) {
-        
         vector<string> commandLines = {};
+
+        // Find redundant & and signal that last command should pipe into next
+        size_t pipe = parallelLines[j].find_first_not_of(" \t");
+        if (pipe != string::npos && parallelLines[j][pipe] == '|' && commands.size() > 0) {
+            commands[commands.size() - 1].pipe = true;
+        }
 
         // Find | for pipes
         size_t pipeFound = parallelLines[j].find_first_of('|'); 
         while(pipeFound != string::npos) {
-            commandLines.push_back(parallelLines[j].substr(0, pipeFound));
+            string line = parallelLines[j].substr(0, pipeFound);
+            if (line.find_first_not_of(" \t") != string::npos) {
+                commandLines.push_back(line);
+            }
             parallelLines[j] = parallelLines[j].substr(pipeFound + 1);
             pipeFound = parallelLines[j].find_first_of('|'); 
         }
+        if (parallelLines[j].find_first_not_of(" \t") == string::npos) {
+            cerr << "Pipe does not direct to a command" << endl;
+            return {};
+        }
         commandLines.push_back(parallelLines[j]);
+        
 
         // Run through each command
         for (int k = 0; k < (int)commandLines.size(); k++) {
