@@ -67,7 +67,11 @@ Description: Execute commands in parallel
 */
 void runCommands(vector<Command> commands) {
     // Check for built-in commands
-    if (commands.size() == 1 && (commands[0].setPath || commands[0].args[0] == "cd" || commands[0].args[0] == "exit")) {
+    if (commands.size() >= 1 && (commands[0].setPath || commands[0].args[0] == "cd" || commands[0].args[0] == "exit")) {
+        if (commands.size() > 1) {
+            cerr << "Cannot run built-in commands in parallel." << endl;
+            return;
+        }
         mishCommands(commands[0]);
     }
     // Use execvpe() to execute commands

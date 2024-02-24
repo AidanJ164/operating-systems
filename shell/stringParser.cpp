@@ -8,77 +8,10 @@
 using namespace std;
 
 /*
-Description: Searches for < to specify the input file for the command.
+Description: Strip the leading whitespace from the given string.
 
-@params: Command &command - command to add input to
-         vector<string> &words - parsed arguments of command
+@params: string &line - string to strip leading spaces from
 */
-void parseInput(Command &command, vector<string> &words) {
-    int i = 0;
-    size_t inputFound;
-    while(i < (int)words.size() && (inputFound = words[i].find('<')) == string::npos) {
-        i++;
-    }
-    if (i < (int) words.size()) {
-        if (words[i] == "<") {
-            if (i + 1 < (int) words.size()) {
-                command.input = words[i + 1];
-                words.erase(words.begin() + i + 1);
-                words.erase(words.begin() + i);
-            }
-        }
-        else {
-            if (inputFound < words[i].size() - 1) {
-                command.input = words[i].substr(inputFound + 1);
-                words[i] = words[i].substr(0, inputFound + 1);
-            }
-            if (inputFound == words[i].size() - 1) {
-                if (i + 1 < (int) words.size() && command.input == "") {
-                    command.input = words[i+1];
-                    words.erase(words.begin() + i + 1);
-                }
-                words[i] = words[i].substr(0, inputFound);
-            }
-        }
-    }
-}
-
-/*
-Description: Searches for > to specify the output file for the command.
-
-@params: Command &command - command to add output to
-         vector<string> &words - parsed arguments of command
-*/
-void parseOutput(Command &command, vector<string> &words) {
-    int i = 0;
-    size_t outputFound;
-    while(i < (int)words.size() && (outputFound = words[i].find('>')) == string::npos) {            
-        i++;    
-    }
-    if (i < (int) words.size()) {
-        if (words[i] == ">") {
-            if (i + 1 < (int) words.size()) {
-                command.output = words[i + 1];
-                words.erase(words.begin() + i + 1);
-                words.erase(words.begin() + i);
-            }
-        }
-        else {
-            if (outputFound < words[i].size() - 1) {
-                command.output = words[i].substr(outputFound + 1);
-                words[i] = words[i].substr(0, outputFound + 1);
-            }
-            if (outputFound == words[i].size() - 1 ) {
-                if (i + 1 < (int)words.size() && command.output == "") {
-                    command.output = words[i + 1];
-                    words.erase(words.begin() + i + 1);
-                }
-                words[i] = words[i].substr(0, outputFound);
-            }
-        }
-    }
-}
-
 void stripWhitespace(string &line) {
     size_t leading = line.find_first_not_of(" \t");
     if (leading != 0) {
@@ -171,11 +104,14 @@ vector<Command> parseString(char* input) {
                 words.push_back(commandLine);
             }
             
+            // Find and set input and output values or = for setting the path.
             vector<string>::iterator itr = words.begin();
             while(itr != words.end()) {
                 string curValue = *itr;
                 if (((curValue == "<") | (curValue == ">") | (curValue == "=")) && (itr + 1 != words.end())) {
                     string nextValue = *(itr + 1);
+
+                    // If next value is not a file or variable to set path, warn user and leave function
                     if (nextValue.find_first_of("<>=") != string::npos) {
                         cerr << "Must have an appropriate value after >, <, or =" << endl;
                         return {};

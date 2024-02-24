@@ -1,4 +1,4 @@
-ls -al > listing1 & ls -al | sort > listing2 &
+ls -al>listing1&ls -al|sort>listing2&
 sleep 2
 
 cat listing1 listing2 | sort > sorted
