@@ -49,7 +49,8 @@ class VSP(MemoryManager):
         start = spaceToFill[0]
         end = spaceToFill[1]
         self.memorySpace.insert(index, [start, start + process.totalSpace - 1, "Process " + str(process.pid), process.totalSpace])
-        if start + process.totalSpace - 1 != self.size - 1:
+        # need to check if the start of next space is the end of the one we just created
+        if start + process.totalSpace < self.size and process.totalSpace != spaceToFill[3]:
             self.memorySpace.insert(index + 1, [start + process.totalSpace, end, "Hole", end - start - process.totalSpace + 1])
 
         self.memorySpace.remove(spaceToFill)
@@ -57,7 +58,7 @@ class VSP(MemoryManager):
         self.curQueue.append(process)
         self.inQueue.remove(process)
         process.finishTime = self.time + process.lifeTime
-        print(" " * 7 + "MM moves Process", process.pid, "to memory")
+        print(" " * 4 + "MM moves Process", process.pid, "to memory")
         self.printQueue()
         self.printMemoryMap()
 
@@ -90,8 +91,6 @@ class VSP(MemoryManager):
         self.printText(f"Process {process.pid} completes")
         self.printMemoryMap()
         self.totalTurnaround += process.finishTime - process.addTime
-
-        self.invoke()
 
 
     def invoke(self):

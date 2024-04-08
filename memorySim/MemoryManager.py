@@ -21,17 +21,17 @@ class MemoryManager(ABC):
 
     def printText(self, str):
         if self.timePrinted:
-            print("       " + str)
+            print("    " + str)
         else:
             print(str)
             self.timePrinted = True
 
     def printMemoryMap(self):
-        print(" " * 7 + f"Memory Map: {self.memorySpace[0][0]}-{self.memorySpace[0][1]}: {self.memorySpace[0][2]}")
-        for i in range(1, len(self.memorySpace)):
-            print(" " * 18 + f"{self.memorySpace[i][0]}-{self.memorySpace[i][1]}: {self.memorySpace[i][2]}")
+        print(" " * 4 + f"Memory Map:")
+        for i in range(len(self.memorySpace)):
+            print(" " * 8 + f"{self.memorySpace[i][0]}-{self.memorySpace[i][1]}: {self.memorySpace[i][2]}")
     def printQueue(self):
-        print(" " * 7 + "Input Queue:[", end="")
+        print(" " * 4 + "Input Queue:[", end="")
         if self.inQueue:
             for i in range(len(self.inQueue) - 1):
                 print(self.inQueue[i].pid, end=" ")
@@ -108,6 +108,7 @@ class MemoryManager(ABC):
             finishingProcesses = self.checkForFinishing()
             for process in finishingProcesses:
                 self.freeMemory(process)
+            self.invoke()
             print("")
             if self.curQueue:
                 self.time = self.findNextTime()
