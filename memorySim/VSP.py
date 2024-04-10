@@ -13,6 +13,9 @@ class VSP(MemoryManager):
                 return True
         return False
 
+    def printProcess(self, process):
+        print(" " * 16 + f"{process[0]}-{process[1]}: {process[2]}")
+
     def findSpaceInMemory(self, process):
         worst = []
         best = []
@@ -58,7 +61,7 @@ class VSP(MemoryManager):
         self.curQueue.append(process)
         self.inQueue.remove(process)
         process.finishTime = self.time + process.lifeTime
-        print(" " * 4 + "MM moves Process", process.pid, "to memory")
+        print(" " * 8 + "MM moves Process", process.pid, "to memory")
         self.printQueue()
         self.printMemoryMap()
 

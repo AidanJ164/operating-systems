@@ -19,19 +19,25 @@ class MemoryManager(ABC):
     def freeMemory(self, process):
         pass
 
+    @abstractmethod
+    def printProcess(self, process):
+        pass
+
     def printText(self, str):
         if self.timePrinted:
-            print("    " + str)
+            print(" " * 8 + str)
         else:
             print(str)
             self.timePrinted = True
 
     def printMemoryMap(self):
-        print(" " * 4 + f"Memory Map:")
+        print(" " * 8 + f"Memory Map: ")
         for i in range(len(self.memorySpace)):
-            print(" " * 8 + f"{self.memorySpace[i][0]}-{self.memorySpace[i][1]}: {self.memorySpace[i][2]}")
+            #print(" " * 16 + f"{self.memorySpace[i][0]}-{self.memorySpace[i][1]}: {self.memorySpace[i][2]}", end="")
+            self.printProcess(self.memorySpace[i])
+
     def printQueue(self):
-        print(" " * 4 + "Input Queue:[", end="")
+        print(" " * 8 + "Input Queue:[", end="")
         if self.inQueue:
             for i in range(len(self.inQueue) - 1):
                 print(self.inQueue[i].pid, end=" ")
@@ -96,7 +102,7 @@ class MemoryManager(ABC):
 
             self.invoke()
 
-            print("")
+            print("        ")
 
             if self.curQueue:
                 self.time = self.findNextTime()
@@ -109,7 +115,7 @@ class MemoryManager(ABC):
             for process in finishingProcesses:
                 self.freeMemory(process)
             self.invoke()
-            print("")
+            print("        ")
             if self.curQueue:
                 self.time = self.findNextTime()
 

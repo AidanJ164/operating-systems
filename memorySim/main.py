@@ -1,5 +1,7 @@
 from process import Process
 from VSP import VSP
+from PAG import PAG
+from SEG import SEG
 
 def main():
     size = int(input("Memory size: "))
@@ -18,9 +20,9 @@ def main():
     if policy == 1:
         MM = VSP(size, processes, algorithm)
     elif policy == 2:
-        pass
+        MM = PAG(size, processes, pageSize)
     else:
-        pass
+        MM = SEG(size, processes, algorithm)
 
     MM.start()
     print(f"Average Turnaround Time: {MM.getAverageTurnaround()}")
