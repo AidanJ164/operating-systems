@@ -16,16 +16,15 @@ def main():
     fileName = input("Workload file: ")
     processes = readfile(fileName)
 
-    MM = 0
     if policy == 1:
-        MM = VSP(size, processes, algorithm)
+        mm = VSP(size, processes, algorithm)
     elif policy == 2:
-        MM = PAG(size, processes, pageSize)
+        mm = PAG(size, processes, pageSize)
     else:
-        MM = SEG(size, processes, algorithm)
+        mm = SEG(size, processes, algorithm)
 
-    MM.start()
-    print(f"Average Turnaround Time: {MM.getAverageTurnaround()}")
+    mm.start()
+    print("Average Turnaround Time: " + "{:.2f}".format(mm.getAverageTurnaround()))
 
 
 def cleanRead(infile):

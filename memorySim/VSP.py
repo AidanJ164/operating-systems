@@ -94,16 +94,3 @@ class VSP(MemoryManager):
         self.printText(f"Process {process.pid} completes")
         self.printMemoryMap()
         self.totalTurnaround += process.finishTime - process.addTime
-
-
-    def invoke(self):
-        index = 0
-        while index < len(self.inQueue):
-            if self.checkForSpace(self.inQueue[index]):
-                self.addToMemory(self.inQueue[index])
-            else:
-                index += 1
-            # if no space, have to wait til memory is free
-
-
-

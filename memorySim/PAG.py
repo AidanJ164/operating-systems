@@ -80,13 +80,6 @@ class PAG(MemoryManager):
         self.printQueue()
         self.printMemoryMap()
 
-    def invoke(self):
-        index = 0
-        while index < len(self.inQueue):
-            if self.checkForSpace(self.inQueue[index]):
-                self.addToMemory(self.inQueue[index])
-            else:
-                index += 1
 
     def findProcessToFree(self, process):
         spaces = []

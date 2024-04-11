@@ -11,8 +11,20 @@ class MemoryManager(ABC):
         self.numProcesses = len(processes)
         self.totalTurnaround = 0
 
-    @abstractmethod
     def invoke(self):
+        index = 0
+        while index < len(self.inQueue):
+            if self.checkForSpace(self.inQueue[index]):
+                self.addToMemory(self.inQueue[index])
+            else:
+                index += 1
+
+    @abstractmethod
+    def addToMemory(self, process):
+        pass
+
+    @abstractmethod
+    def checkForSpace(self, process):
         pass
 
     @abstractmethod
