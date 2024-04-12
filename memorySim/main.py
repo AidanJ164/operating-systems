@@ -6,6 +6,8 @@ from SEG import SEG
 def main():
     size = int(input("Memory size: "))
     policy = int(input("Memory management policy (1 - VSP, 2 - PAG, 3 - SEG): "))
+
+    # get page size or algorithm to use, depending on what kind of memory manager to use
     pageSize = 0
     algorithm = 0
     if policy == 2:
@@ -13,9 +15,11 @@ def main():
     else:
         algorithm = int(input("Fit algorithm (1 - first-fit, 2 - best-fit, 3 - worst-fit): "))
 
+    # get and read file
     fileName = input("Workload file: ")
     processes = readfile(fileName)
 
+    # create the memory manager
     if policy == 1:
         mm = VSP(size, processes, algorithm)
     elif policy == 2:
@@ -23,18 +27,34 @@ def main():
     else:
         mm = SEG(size, processes, algorithm)
 
+    # start the memory manager
     mm.start()
-    print("Average Turnaround Time: " + "{:.2f}".format(mm.getAverageTurnaround()))
+    print("Average Turnaround Time: " + "{:.2f}".format(mm.getAverageTurnaround()).rstrip('0').rstrip('.'))
 
 
 def cleanRead(infile):
+    """
+    This function makes sure that the line being read in is not just an empty line.
+
+    :param infile: file to read from
+    :return: string - next line in file that contains content
+    """
     line = infile.readline()
+    # while line is empty, get the next line
     while(line == "\n"):
         line = infile.readline()
 
     return line
 
 def readfile(fileName):
+    """
+    Takes in a name of a workload file that contains the process information to manage.
+    It will read in each process and store the necessary information about each process in a Process
+    class and append it to a list of all the processes.
+
+    :param fileName: workload file
+    :return: list of processes
+    """
     processes = []
     infile = open(fileName)
 
