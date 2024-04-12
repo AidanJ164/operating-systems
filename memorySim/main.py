@@ -29,7 +29,11 @@ def main():
 
     # start the memory manager
     mm.start()
-    print("Average Turnaround Time: " + "{:.2f}".format(mm.getAverageTurnaround()).rstrip('0').rstrip('.'))
+
+    averageTurnaroundTime = "{:.2f}".format(mm.getAverageTurnaround())
+    if averageTurnaroundTime[-1] == "0":
+        averageTurnaroundTime = averageTurnaroundTime[:-1]
+    print("Average Turnaround Time: " + averageTurnaroundTime)
 
 
 def cleanRead(infile):
