@@ -14,8 +14,8 @@
 ******************************************************************************/
 #include <iostream>
 #include <string>
-#include "inputLoop.cpp"
-#include "runFile.cpp"
+#include "inputLoop.h"
+#include "runFile.h"
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -30,4 +30,3 @@ int main(int argc, char** argv) {
   }
   return 0;
 }
-

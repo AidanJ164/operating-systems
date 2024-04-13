@@ -1,15 +1,4 @@
-#ifndef COMMANDRUNNER_CPP
-#define COMMANDRUNNER_CPP
-
-#include <string>
-#include <vector>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <iostream>
-#include <unistd.h>
-#include <fcntl.h>
-#include "command.h"
-using namespace std;
+#include "commandRunner.h"
 
 /*
 Description: Close any opened pipes.
@@ -163,5 +152,3 @@ void runCommands(vector<Command> commands) {
         }
     }
 }
-
-#endif

@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/operating/operating-systems/shell/command.h
+vector
+-
+string
+-
+
+/home/pi/operating/operating-systems/shell/stringParser.cpp
+stringParser.h
+/home/pi/operating/operating-systems/shell/stringParser.h
+
+/home/pi/operating/operating-systems/shell/stringParser.h
+iostream
+-
+string
+-
+string.h
+-
+vector
+-
+command.h
+/home/pi/operating/operating-systems/shell/command.h
+

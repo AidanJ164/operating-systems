@@ -1,0 +1,28 @@
+3	blank line and exit
+3	simple command and exit
+3	simple command with output redirection and exit
+3	simple command with input redirection and exit
+3	simple command with input and output redirection and exit
+3	simple command with output and input redirection and exit
+3	single pipe
+3	single pipe with output redirect
+3	single pipe with input and output redirect
+3	double pipe
+3	double pipe with output redirect
+3	double pipe with input redirect
+3	double pipe with input and output redirect
+0	wait on child
+0	do not wait on child
+3	set PATH
+3	set other variable
+3	basic script
+3	multi-line basic script
+3	multi-line complex script
+3	bad syntax: multiple output redirect
+3	bad syntax: multiple input redirect
+3	bad syntax: two pipes with no command between
+3	bad syntax: input redir after pipe
+3	bad syntax: output redir before pipe
+3	command that fails
+3	command in pipe fails
+3	parallel command fails

@@ -1,0 +1,3 @@
+/home/pi/operating/operating-systems/shell/CMakeFiles/rebuild_cache.dir
+/home/pi/operating/operating-systems/shell/CMakeFiles/mish.dir
+/home/pi/operating/operating-systems/shell/CMakeFiles/edit_cache.dir

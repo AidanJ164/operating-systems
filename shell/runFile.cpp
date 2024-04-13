@@ -1,11 +1,4 @@
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include "command.h"
-#include "stringParser.cpp"
-#include "commandRunner.cpp"
-using namespace std;
+#include "runFile.h"
 
 /*
 Description: Open and read commands from a file line by line.

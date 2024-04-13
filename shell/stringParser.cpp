@@ -1,11 +1,4 @@
-#ifndef STRINGPARSER_CPP
-#define STRINGPARSER_CPP
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include "command.h"
-using namespace std;
+#include "stringParser.h"
 
 /*
 Description: Strip the leading whitespace from the given string.
@@ -56,8 +49,14 @@ vector<Command> parseString(char* input) {
                 commandLines.push_back(line);
             }
             parallelLines[j] = parallelLines[j].substr(pipeFound + 1);
+            stripWhitespace(parallelLines[j]);
+            if (parallelLines[j] != "" && parallelLines[j][0] == '|') {
+                cerr << "Cannot have two pipes with no command between." << endl;
+                return {};
+            }
             pipeFound = parallelLines[j].find_first_of('|'); 
         }
+
         if (parallelLines[j].find_first_not_of(" \t") == string::npos) {
             cerr << "Pipe does not direct to a command" << endl;
             return {};
@@ -108,28 +107,45 @@ vector<Command> parseString(char* input) {
             vector<string>::iterator itr = words.begin();
             while(itr != words.end()) {
                 string curValue = *itr;
-                if (((curValue == "<") | (curValue == ">") | (curValue == "=")) && (itr + 1 != words.end())) {
+                if (((curValue == "<") | (curValue == ">")) && (itr + 1 != words.end())) {
                     string nextValue = *(itr + 1);
 
                     // If next value is not a file or variable to set path, warn user and leave function
-                    if (nextValue.find_first_of("<>=") != string::npos) {
-                        cerr << "Must have an appropriate value after >, <, or =" << endl;
+                    if (nextValue.find_first_of("<>") != string::npos) {
+                        cerr << "Must have an appropriate value after > or <." << endl;
                         return {};
                     }
                     itr = words.erase(itr);
                     switch (curValue[0]) {
                         case '<':
+                            if (command.input != "") {
+                                cerr << "Can only have one input file." << endl;
+                                return {};
+                            }
+                            if (k > 0 && commands[k - 1].pipe) {
+                                cerr << "Cannot have an input redirect after a pipe." << endl;
+                                return {};
+                            }
                             command.input = nextValue;
                             itr = words.erase(itr);
                             break;
                         case '>':
+                            if (command.output != "") {
+                                cerr << "Can only have one output file." << endl;
+                                return {};
+                            }
+                            if (command.pipe) {
+                                cerr << "Cannot have output redirect before a pipe" << endl;
+                                return {};
+                            }
                             command.output = nextValue;
                             itr = words.erase(itr);
                             break;
-                        case '=':
-                            command.setPath = true;
-                            break;
                     }
+                }
+                else if (curValue[0] == '=') {
+                    command.setPath = true;
+                    itr = words.erase(itr);
                 }
                 else {
                     itr++;
@@ -137,11 +153,14 @@ vector<Command> parseString(char* input) {
             }
 
             command.args = words;
+            // If no path supplied, add an empty string to set it to
+            if (command.setPath && (int)command.args.size() < 2 ) {
+                command.args.push_back(" ");
+            }
+
             commands.push_back(command);
         }
     }
     
     return commands;
 }
-
-#endif
