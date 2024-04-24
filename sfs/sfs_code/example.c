@@ -18,7 +18,7 @@ int main()
   sfs_superblock *super = (sfs_superblock *)raw_superblock;
 
   /* open the disk image and get it ready to read/write blocks */
-  driver_attach_disk_image("initrd", 128);
+  driver_attach_disk_image("rd2.img", 128);
 
   /* CHANGE THE FOLLOWING CODE SO THAT IT SEARCHES FOR THE SUPERBLOCK */
   
