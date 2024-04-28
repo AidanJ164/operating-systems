@@ -1,17 +1,19 @@
+#include <iomanip>
 #include <iostream>
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
+
 #include "driver.h"
+#include "file_block.h"
 #include "sfs_inode.h"
 #include "sfs_superblock.h"
 #include "sfs_dir.h"
-#include <iomanip>
-#include <time.h>
 
 using namespace std;
 
-void get_file_block(sfs_inode &n, uint32_t blknum, void *data);
+//void get_file_block(sfs_inode &n, uint32_t blknum, void *data);
 void printEntry(sfs_dirent entry, bool longListing, uint32_t inodePointer);
 void printFileType(uint8_t type);
 void printPerms(uint16_t perm);
@@ -21,11 +23,12 @@ string getMinute(int min);
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        cerr << "Usage: ./dils.exe disk_image_file [-l]" << endl;
+        cerr << "Usage: ./dils disk_image_file [-l]" << endl;
+        exit(1);
     }
 
     char* diskImage = argv[1];
-    int i = 0, superIndex, numBlocks = 0, numFiles = 0;
+    int i = 0, numBlocks = 0, numFiles = 0;
     uint32_t inodePointer;
     bool superblockFound = false, longListing = false;
     char raw_superblock[128];
@@ -47,12 +50,10 @@ int main(int argc, char** argv) {
         }
         i++;
     }
-
+    
     inodePointer = super->inodes;
     driver_read(inodes, inodePointer);
     rootDir = inodes[0];
-
-    driver_read(super, 13);
 
     numBlocks = rootDir.size / 128;
     if (rootDir.size % 128 != 0) {
@@ -62,13 +63,13 @@ int main(int argc, char** argv) {
 
     for (i = 0; i < numBlocks; i++) {
         get_file_block(rootDir, i, entries);
-        if (i != numBlocks - 1) {
-            for (int j = 0; j < 4; j++) {
+        if (i == numBlocks - 1 && rootDir.size % 128 != 0) {
+            for (int j = 0; j < numFiles % 4; j++) {
                 printEntry(entries[j], longListing, inodePointer);
             }
         }
         else {
-            for (int j = 0; j < numFiles % 4; j++) {
+            for (int j = 0; j < 4; j++) {
                 printEntry(entries[j], longListing, inodePointer);
             }
         }
@@ -78,46 +79,6 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-void get_file_block(sfs_inode &n, uint32_t blknum, void *data) {
-    uint32_t ptrs[32];
-    // Direct
-    if (blknum < 5) {
-        driver_read(data, n.direct[blknum]);
-    }
-    // Indirect
-    else if (blknum < 37) {
-        driver_read(ptrs, n.indirect);
-        driver_read(data, ptrs[blknum - 5]);
-    }
-    // Double indirect
-    // points to a block with 32 pointers that each points to a block of 32 blocks
-    else if (blknum < 5 + 32 + 32 * 32) {
-        uint32_t temp;
-        driver_read(ptrs, n.dindirect);
-        temp = (blknum - 5 - 32) / 32;
-        temp = ptrs[temp];
-        driver_read(ptrs, ptrs[temp]);
-        temp = (blknum - 5 - 32) % 32;
-        driver_read(data, ptrs[temp]);
-    }
-    // Triple Indirect
-    else {
-        
-    }
-}
-/*
-    File Size
-    128 byte blocks => (5 + 32 + 32^2 + 32^3) blocks * 128 bytes = 4M  
-    256 byte blocks => (5 + 64 + 64^2 + 64^3) blocks * 256 bytes = 64M
-    4K blocks => (5 + 2^10 + (2^10)^2 + (2^10)^3) blocks * 2^12 bytes = 4T
-
-    Part B displaying 
-    asc_time() - read the man page to find the correct function
-    Do a ls -l in a unix command line to find what you need to print
-    Day of week, month, day, time, year
-    In the image he gave us, the time will be December 1969
-*/
 
 void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
     if (!longListing) {
@@ -130,10 +91,9 @@ void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
         inodeNum /= 2;
         //uint32_t entryBlock = inodeStart + (entry.inode / 2);
         tm* time;
-        cout << entry.name << "   Inode: " << entry.inode << "   Block: " << inodeStart + inodeNum << endl;
         driver_read(block, inodeStart + inodeNum);
         inode = block[entry.inode % 2];
-/*
+
         // File Type
         printFileType(inode.type);
 
@@ -144,11 +104,11 @@ void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
         if (!inode.refcount) {
             inode.refcount = 0;
         }
-        cout << setw(3) << static_cast<int16_t>(inode.refcount);
+        cout << static_cast<int16_t>(inode.refcount) << " ";
         cout << " ";
 
         // Owner, group, and size
-        cout << setw(2) <<  inode.owner << " " << setw(2) << inode.group << " " << setw(5) << inode.size << " ";
+        cout << setw(5) <<  inode.owner << " " << setw(6) << inode.group << " " << setw(7) << inode.size << " ";
 
         // Date
         time_t mtime = static_cast<time_t>(inode.mtime);
@@ -158,7 +118,6 @@ void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
 
         // File Name
         cout << entry.name;
-*/
         cout << endl;
     }
 }

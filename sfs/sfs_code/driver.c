@@ -30,7 +30,6 @@ void driver_detach_disk_image()
 /* function to read a block from the disk image */
 void driver_read(void *ptr, uint32_t block_num)
 {
-  //printf("Seek: %d\n", (1 + block_num) * blksize);
   if(lseek(fd, (1+block_num) * blksize, SEEK_SET) == -1)
     {
       perror("Driver failed to read block");
