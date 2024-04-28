@@ -1,3 +1,0 @@
-D:/operating-systems/sfs/dils/CMakeFiles/dils.dir
-D:/operating-systems/sfs/dils/CMakeFiles/ALL_BUILD.dir
-D:/operating-systems/sfs/dils/CMakeFiles/ZERO_CHECK.dir
