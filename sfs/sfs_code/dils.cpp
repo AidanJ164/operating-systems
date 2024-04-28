@@ -1,48 +1,31 @@
-#include <iomanip>
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
-
-#include "driver.h"
-#include "file_block.h"
-#include "sfs_inode.h"
-#include "sfs_superblock.h"
-#include "sfs_dir.h"
-
-using namespace std;
-
-//void get_file_block(sfs_inode &n, uint32_t blknum, void *data);
-void printEntry(sfs_dirent entry, bool longListing, uint32_t inodePointer);
-void printFileType(uint8_t type);
-void printPerms(uint16_t perm);
-void printPermTriad(int perms);
-string getMonth(int month);
-string getMinute(int min);
+#include "dils.h"
 
 int main(int argc, char** argv) {
+
+    // Check for appropriate amount of args.
     if (argc < 2 || argc > 3) {
         cerr << "Usage: ./dils disk_image_file [-l]" << endl;
         exit(1);
     }
 
+    bool superblockFound = false, longListing = false;
+    char raw_superblock[BLOCK_SIZE];
     char* diskImage = argv[1];
     int i = 0, numBlocks = 0, numFiles = 0;
-    uint32_t inodePointer;
-    bool superblockFound = false, longListing = false;
-    char raw_superblock[128];
     sfs_superblock *super = (sfs_superblock *)raw_superblock;
     sfs_inode_t inodes[2];
     sfs_inode_t rootDir;
     sfs_dirent entries[4];
+    uint32_t inodePointer;
 
+    // Check for long listing
     if (argc == 3 && strcmp(argv[2], "-l") == 0) {
         longListing = true;
     }
 
-    driver_attach_disk_image(diskImage, 128);
+    driver_attach_disk_image(diskImage, BLOCK_SIZE);
     
+    // Find the super block
     while (!superblockFound) {
         driver_read(super, i);
         if (super->fsmagic == VMLARIX_SFS_MAGIC && !strcmp(super->fstypestr, VMLARIX_SFS_TYPESTR)) {
@@ -51,19 +34,22 @@ int main(int argc, char** argv) {
         i++;
     }
     
+    // Get the root directory
     inodePointer = super->inodes;
     driver_read(inodes, inodePointer);
     rootDir = inodes[0];
 
-    numBlocks = rootDir.size / 128;
-    if (rootDir.size % 128 != 0) {
+    // Find number of blocks and files to read.
+    numBlocks = rootDir.size / BLOCK_SIZE;
+    if (rootDir.size % BLOCK_SIZE != 0) {
         numBlocks++;
     }
-    numFiles = rootDir.size / 32;
+    numFiles = rootDir.size / (BLOCK_SIZE / 4);
 
+    // Read each file in the root directory.
     for (i = 0; i < numBlocks; i++) {
         get_file_block(rootDir, i, entries);
-        if (i == numBlocks - 1 && rootDir.size % 128 != 0) {
+        if (i == numBlocks - 1 && rootDir.size % BLOCK_SIZE != 0) {
             for (int j = 0; j < numFiles % 4; j++) {
                 printEntry(entries[j], longListing, inodePointer);
             }
@@ -80,17 +66,27 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+/* 
+ * Description: Print the given entry out to the console.
+ * Parameters: sfs_dirent entry - file entry to print
+ *             bool longListing - specifies whether to print more details
+ *             uint32_t inodeStart - start of the inode table
+*/
 void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
+    // If not long listing, just print file name
     if (!longListing) {
         cout << entry.name << endl;
     }
+    // Else print more details
     else {
         sfs_inode block[2];
         sfs_inode inode;
-        uint32_t inodeNum = entry.inode;
-        inodeNum /= 2;
-        //uint32_t entryBlock = inodeStart + (entry.inode / 2);
         tm* time;
+        uint32_t inodeNum = entry.inode;
+        
+        inodeNum /= 2;
+        
+        // Read in the block that has the file's inode.
         driver_read(block, inodeStart + inodeNum);
         inode = block[entry.inode % 2];
 
@@ -110,7 +106,7 @@ void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
         // Owner, group, and size
         cout << setw(5) <<  inode.owner << " " << setw(6) << inode.group << " " << setw(7) << inode.size << " ";
 
-        // Date
+        // Date and time
         time_t mtime = static_cast<time_t>(inode.mtime);
         time = localtime(&mtime);
         cout << getMonth(time->tm_mon) << " " << time->tm_mday << " "
@@ -122,6 +118,11 @@ void printEntry(sfs_dirent entry, bool longListing, uint32_t inodeStart) {
     }
 }
 
+/* 
+ * Description: Prints the type of file to the screen. File types are specified in
+                sfs_inode.h.
+ * Parameters: uint8_t type - file type as an int.
+*/
 void printFileType(uint8_t type) {
     switch (type) {
         case FT_NORMAL:
@@ -148,28 +149,41 @@ void printFileType(uint8_t type) {
     }
 }
 
+/* 
+ * Description: Print the permissions of the file to the console.
+ * Parameters: uint16_t perm - permissions to print
+*/
 void printPerms(uint16_t perm) {
     int owner = perm, group, other;
 
+    // Get the integer representation of each permission triad.
     other = owner & 0b111;
     owner = owner >> 3;
     group = owner & 0b111;
     owner = owner >> 3;
     owner = owner & 0b111;
 
+    // Print permissions
     printPermTriad(owner);
     printPermTriad(group);
     printPermTriad(other);
     cout << " ";
 }
 
+/* 
+ * Description: Print the permission triad to the console.
+ * Parameters: int perms - permission triad
+*/
 void printPermTriad(int perms) {
+    // Get read perm
     if (perms / 4 >= 1) {
         cout << "r";
     }
     else {
         cout << "-";
     }
+
+    // Get write perm
     perms = perms % 4;
     if (perms / 2 >= 1) {
         cout << "w";
@@ -177,6 +191,8 @@ void printPermTriad(int perms) {
     else {
         cout << "-";
     }
+
+    // Get execute permission
     perms = perms % 2;
     if (perms == 1) {
         cout << "x";
@@ -186,6 +202,11 @@ void printPermTriad(int perms) {
     }
 }
 
+/* 
+ * Description: Get the abbreviated month based off of the given integer.
+ * Parameters: int month - month to get
+ * Returns: string - abbreviated month
+*/
 string getMonth(int month) {
     switch (month) {
         case 0:
@@ -216,6 +237,11 @@ string getMonth(int month) {
     return "";
 }
 
+/* 
+ * Description: This function is to ensure that the minute is represented in two digits.
+ * Parameters: int min - minute
+ * Returns: string - minute represented in two digits.
+*/
 string getMinute(int min) {
     if (min < 10) {
         return "0" + to_string(min);

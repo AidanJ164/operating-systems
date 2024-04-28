@@ -1,6 +1,13 @@
+There are two programs to be compiled in this folder. G++ is needed to compile both programs.
 
-You can compile the example with:
+For Parts A and B, or dils:
+    g++ -I. -Wall -o dils dils.cpp driver.c file_block.cpp
 
-  gcc -I. -o example example.c driver.c
+Disk Image List is ran with:
+    ./dils image_file [-l]
 
-You can copy example.c to cp_from_rd.c and use it to start your project.
+For Part C, or dicpo:
+    g++ -I. -Wall -o dicpo dicpo.cpp driver.c file_block.cpp
+
+Disk Image Copy Out is ran with:
+    ./dicpo image_file file_to_copy
